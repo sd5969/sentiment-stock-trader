@@ -4,6 +4,9 @@ Houses trading algorithms
 
 from datetime import datetime, date, timedelta, time as datetime_time
 from dotenv import load_dotenv, find_dotenv
+import pandas as pd
+import plotly.plotly as py
+import plotly.figure_factory as ff
 import logger
 
 # load_dotenv(dotenv_path=os.path.join(os.getcwd(), '.env'))
@@ -107,6 +110,7 @@ class HeikinAshiAlgorithm():
     """
 
     BUY_COUNT = 2
+    PRINT_CHART = True
 
     @staticmethod
     def execute(trader, data_api, trading_date):
@@ -169,18 +173,24 @@ class HeikinAshiAlgorithm():
                     o = (bar.o + bar.c) / 2
                     l = bar.l
                     h = bar.h
-                    ha_calc[ticker].append({'c': c, 'o': o, 'l': l, 'h': h})
+                    t = bar.t
+                    ha_calc[ticker].append({'c': c, 'o': o, 'l': l, 'h': h, 't': t})
                 else:
                     c = (bar.o + bar.h + bar.l + bar.c) / 4
                     o = (ha_calc[ticker][index - 1]['o'] + ha_calc[ticker][index - 1]['c']) / 2
                     l = min(bar.l, c, o)
                     h = max(bar.h, c, o)
-                    ha_calc[ticker].append({'c': c, 'o': o, 'l': l, 'h': h})
+                    t = bar.t
+                    ha_calc[ticker].append({'c': c, 'o': o, 'l': l, 'h': h, 't': t})
 
             # do we have enough data?
 
             if len(ha_calc[ticker]) < 2:
                 continue
+
+            if HeikinAshiAlgorithm.PRINT_CHART:
+                df_for_chart = pd.DataFrame(ha_calc[ticker])
+                HeikinAshiAlgorithm.export_chart(chart_date=yesterday, ticker=ticker, data=df_for_chart)
 
             latest_ha = ha_calc[ticker][-1]
             previous_ha = ha_calc[ticker][-2]
@@ -272,3 +282,12 @@ class HeikinAshiAlgorithm():
         data_api.update_positions(tag='HA', orders=orders_result)
 
         _logger.info("All HA trades (if any) complete")
+
+    @staticmethod
+    def export_chart(chart_date, ticker, data):
+        """
+        Prints candlestick chart from Hekin-Ashi data
+        """
+
+        fig = ff.create_candlestick(data.o, data.h, data.l, data.c, dates=data.t)
+        py.plot(fig, filename='out.' + str(chart_date) + '.' + ticker + '-candlestick', validate=False)

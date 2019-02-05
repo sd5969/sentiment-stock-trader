@@ -39,6 +39,14 @@ AL_SECRET="secret"
 
 ```
 
+If you'd like to use the plotly module for plotting candlestick charts, you
+must configure `plotly`. In the `python3` shell:
+
+```python
+import plotly
+plotly.tools.set_credentials_file(username='yourusername', api_key='yourapikey')
+```
+
 ## Execution
 
 Execute the tweet monitoring application:

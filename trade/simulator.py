@@ -25,7 +25,7 @@ def daterange(date1, date2):
         yield date1 + timedelta(n)
 
 START_DATE = date(2018, 12, 3)
-END_DATE = date(2018, 12, 24)
+END_DATE = date(2018, 12, 3)
 
 def main():
     """
@@ -40,6 +40,8 @@ def main():
     if not trader.market_is_open():
         _logger.info("Market is closed, no trading will occur")
         return
+
+    data_api.reset_positions(tag='HA')
 
     date_range = daterange(START_DATE, END_DATE)
     for date_entry in date_range:
